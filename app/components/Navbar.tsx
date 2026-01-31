@@ -6,15 +6,19 @@ import { useState } from 'react';
 
 const publicLinks = [
   { href: '/', label: 'Home' },
+  { href: '/projects', label: 'Projects' },
   { href: '/dsa', label: 'DSA Journey' },
   { href: '/linkedin', label: 'LinkedIn' },
+  { href: '/instagram', label: 'Instagram' },
+  { href: '/youtube', label: 'YouTube' },
   { href: '/about', label: 'About' },
 ];
 
 const adminLinks = [
   { href: '/admin', label: 'Dashboard' },
+  { href: '/admin/projects', label: 'Projects' },
   { href: '/admin/dsa', label: 'DSA' },
-  { href: '/admin/tasks', label: 'Tasks' },
+  { href: '/admin/instagram', label: 'Instagram' },
   { href: '/admin/videos', label: 'Videos' },
   { href: '/admin/linkedin', label: 'LinkedIn' },
 ];

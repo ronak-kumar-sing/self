@@ -4,10 +4,11 @@ interface StatCardProps {
   title: string;
   value: number | string;
   subtitle?: string;
+  yearlyInfo?: string;
   icon?: React.ReactNode;
 }
 
-export default function StatCard({ title, value, subtitle, icon }: StatCardProps) {
+export default function StatCard({ title, value, subtitle, yearlyInfo, icon }: StatCardProps) {
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
       <div className="flex items-start justify-between">
@@ -16,6 +17,9 @@ export default function StatCard({ title, value, subtitle, icon }: StatCardProps
           <p className="mt-2 text-3xl font-semibold tracking-tight">{value}</p>
           {subtitle && (
             <p className="mt-1 text-sm text-zinc-500">{subtitle}</p>
+          )}
+          {yearlyInfo && (
+            <p className="mt-2 text-xs font-medium text-violet-600 dark:text-violet-400">{yearlyInfo}</p>
           )}
         </div>
         {icon && (

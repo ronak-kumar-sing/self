@@ -1,14 +1,41 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useStore } from '../../store/useStore';
-import LinkedInList from '../../components/LinkedInList';
+import { getYearlyStats } from '../../lib/utils';
 import type { LinkedInPost } from '../../types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Plus, Pencil, Trash2, ExternalLink } from 'lucide-react';
 
 export default function LinkedInPage() {
   const { linkedInPosts, addLinkedInPost, updateLinkedInPost, deleteLinkedInPost } = useStore();
-  const [showForm, setShowForm] = useState(false);
+  const yearlyStats = getYearlyStats(linkedInPosts.map(p => p.date));
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<LinkedInPost | null>(null);
 
   const [formData, setFormData] = useState({
@@ -19,14 +46,7 @@ export default function LinkedInPage() {
     engagement: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingPost) {
-      updateLinkedInPost(editingPost.id, formData);
-      setEditingPost(null);
-    } else {
-      addLinkedInPost(formData);
-    }
+  const resetForm = () => {
     setFormData({
       date: new Date().toISOString().split('T')[0],
       summary: '',
@@ -34,7 +54,18 @@ export default function LinkedInPage() {
       topic: 'Learning',
       engagement: '',
     });
-    setShowForm(false);
+    setEditingPost(null);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingPost) {
+      updateLinkedInPost(editingPost.id, formData);
+    } else {
+      addLinkedInPost(formData);
+    }
+    setIsDialogOpen(false);
+    resetForm();
   };
 
   const handleEdit = (post: LinkedInPost) => {
@@ -46,7 +77,7 @@ export default function LinkedInPage() {
       topic: post.topic,
       engagement: post.engagement || '',
     });
-    setShowForm(true);
+    setIsDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
@@ -56,132 +87,155 @@ export default function LinkedInPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <div className="mx-auto max-w-4xl px-6 py-12">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <Link href="/admin" className="text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-white">
-              ← Back to Dashboard
-            </Link>
-            <h1 className="mt-2 text-2xl font-bold">LinkedIn Posts</h1>
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Total: <span className="font-semibold">{linkedInPosts.length} posts</span>
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              setEditingPost(null);
-              setFormData({
-                date: new Date().toISOString().split('T')[0],
-                summary: '',
-                link: '',
-                topic: 'Learning',
-                engagement: '',
-              });
-              setShowForm(!showForm);
-            }}
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
-          >
-            {showForm ? 'Cancel' : '+ Add Post'}
-          </button>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">LinkedIn Posts</h2>
+          <p className="text-muted-foreground">
+            Manage your professional network updates. {yearlyStats.count} posts in {yearlyStats.currentYear}
+          </p>
         </div>
-
-        {/* Form */}
-        {showForm && (
-          <div className="mb-8 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-            <h2 className="mb-4 text-lg font-semibold">
-              {editingPost ? 'Edit Post' : 'Add New Post'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Topic
-                  </label>
-                  <select
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) resetForm();
+        }}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" /> Add Post
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>{editingPost ? 'Edit Post' : 'Add New Post'}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="topic">Topic</Label>
+                  <Select
                     value={formData.topic}
-                    onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
+                    onValueChange={(val) => setFormData({ ...formData, topic: val })}
                   >
-                    <option>Learning</option>
-                    <option>DSA</option>
-                    <option>Career</option>
-                    <option>Project</option>
-                    <option>Tech</option>
-                    <option>Personal</option>
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select topic" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Learning">Learning</SelectItem>
+                      <SelectItem value="DSA">DSA</SelectItem>
+                      <SelectItem value="Career">Career</SelectItem>
+                      <SelectItem value="Project">Project</SelectItem>
+                      <SelectItem value="Tech">Tech</SelectItem>
+                      <SelectItem value="Personal">Personal</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Date *
-                  </label>
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date</Label>
+                  <Input
+                    id="date"
                     type="date"
                     required
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
                   />
                 </div>
               </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Summary *
-                </label>
-                <textarea
+
+              <div className="space-y-2">
+                <Label htmlFor="summary">Summary</Label>
+                <Textarea
+                  id="summary"
                   required
                   value={formData.summary}
                   onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-                  rows={3}
-                  className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
-                  placeholder="Brief summary of the post..."
+                  placeholder="Post summary..."
                 />
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Post Link *
-                  </label>
-                  <input
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="link">Link</Label>
+                  <Input
+                    id="link"
                     type="url"
                     required
                     value={formData.link}
                     onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
-                    placeholder="https://linkedin.com/posts/..."
+                    placeholder="https://..."
                   />
                 </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Engagement
-                  </label>
-                  <input
-                    type="text"
+                <div className="space-y-2">
+                  <Label htmlFor="engagement">Engagement</Label>
+                  <Input
+                    id="engagement"
                     value={formData.engagement}
                     onChange={(e) => setFormData({ ...formData, engagement: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
-                    placeholder="100 likes, 20 comments"
+                    placeholder="e.g. 100 likes"
                   />
                 </div>
               </div>
-              <button
-                type="submit"
-                className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
-              >
-                {editingPost ? 'Update Post' : 'Add Post'}
-              </button>
-            </form>
-          </div>
-        )}
 
-        {/* List */}
-        <LinkedInList
-          posts={linkedInPosts}
-          showActions
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+              <div className="flex justify-end pt-4">
+                <Button type="submit">{editingPost ? 'Save Changes' : 'Add Post'}</Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Topic</TableHead>
+              <TableHead>Summary</TableHead>
+              <TableHead>Engagement</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {linkedInPosts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                  No posts added yet.
+                </TableCell>
+              </TableRow>
+            ) : (
+              linkedInPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((post) => (
+                <TableRow key={post.id}>
+                  <TableCell className="font-medium">
+                    <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-900/30 dark:text-blue-400">
+                      {post.topic}
+                    </span>
+                  </TableCell>
+                  <TableCell className="max-w-xs truncate">
+                    <div className="flex items-center gap-2">
+                      {post.summary}
+                      {post.link && (
+                        <a href={post.link} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>{post.engagement || '-'}</TableCell>
+                  <TableCell>{post.date}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(post)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => handleDelete(post.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

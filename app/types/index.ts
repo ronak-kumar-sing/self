@@ -9,12 +9,15 @@ export interface DSAEntry {
   link?: string;
 }
 
-export interface Task {
+export interface InstagramPost {
   id: string;
   date: string;
-  title: string;
-  completed: boolean;
-  category: string;
+  caption: string;
+  type: 'Reel' | 'Post' | 'Story' | 'Carousel';
+  topic: string;
+  link?: string;
+  likes?: number;
+  views?: number;
 }
 
 export interface VideoEntry {
@@ -24,6 +27,7 @@ export interface VideoEntry {
   platform: 'YouTube' | 'Instagram' | 'LinkedIn' | 'Other';
   link?: string;
   description: string;
+  views?: number;
 }
 
 export interface LinkedInPost {
@@ -43,18 +47,37 @@ export interface LearningNote {
   tags: string[];
 }
 
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  longDescription?: string;
+  category: 'Web App' | 'Mobile App' | 'API' | 'CLI Tool' | 'Library' | 'AI/ML' | 'DevOps' | 'Other';
+  status: 'In Progress' | 'Completed' | 'Maintained' | 'Archived';
+  technologies: string[];
+  features?: string[];
+  githubUrl?: string;
+  liveUrl?: string;
+  imageUrl?: string;
+  startDate: string;
+  endDate?: string;
+  featured?: boolean;
+  order?: number;
+}
+
 export interface AppState {
   dsaEntries: DSAEntry[];
-  tasks: Task[];
+  instagramPosts: InstagramPost[];
   videos: VideoEntry[];
   linkedInPosts: LinkedInPost[];
   learningNotes: LearningNote[];
+  projects: Project[];
   addDSAEntry: (entry: Omit<DSAEntry, 'id'>) => void;
   updateDSAEntry: (id: string, entry: Partial<DSAEntry>) => void;
   deleteDSAEntry: (id: string) => void;
-  addTask: (task: Omit<Task, 'id'>) => void;
-  updateTask: (id: string, task: Partial<Task>) => void;
-  deleteTask: (id: string) => void;
+  addInstagramPost: (post: Omit<InstagramPost, 'id'>) => void;
+  updateInstagramPost: (id: string, post: Partial<InstagramPost>) => void;
+  deleteInstagramPost: (id: string) => void;
   addVideo: (video: Omit<VideoEntry, 'id'>) => void;
   updateVideo: (id: string, video: Partial<VideoEntry>) => void;
   deleteVideo: (id: string) => void;
@@ -64,4 +87,9 @@ export interface AppState {
   addLearningNote: (note: Omit<LearningNote, 'id'>) => void;
   updateLearningNote: (id: string, note: Partial<LearningNote>) => void;
   deleteLearningNote: (id: string) => void;
+  addProject: (project: Omit<Project, 'id'>) => void;
+  updateProject: (id: string, project: Partial<Project>) => void;
+  deleteProject: (id: string) => void;
+  resetToMockData: () => void;
+  clearAllData: () => void;
 }

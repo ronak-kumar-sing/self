@@ -1,14 +1,41 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useStore } from '../../store/useStore';
-import VideoList from '../../components/VideoList';
+import { getYearlyStats } from '../../lib/utils';
 import type { VideoEntry } from '../../types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Plus, Pencil, Trash2, ExternalLink, Video } from 'lucide-react';
 
 export default function VideosPage() {
   const { videos, addVideo, updateVideo, deleteVideo } = useStore();
-  const [showForm, setShowForm] = useState(false);
+  const yearlyStats = getYearlyStats(videos.map(v => v.date));
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingVideo, setEditingVideo] = useState<VideoEntry | null>(null);
 
   const [formData, setFormData] = useState({
@@ -19,14 +46,7 @@ export default function VideosPage() {
     link: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingVideo) {
-      updateVideo(editingVideo.id, formData);
-      setEditingVideo(null);
-    } else {
-      addVideo(formData);
-    }
+  const resetForm = () => {
     setFormData({
       date: new Date().toISOString().split('T')[0],
       title: '',
@@ -34,7 +54,18 @@ export default function VideosPage() {
       description: '',
       link: '',
     });
-    setShowForm(false);
+    setEditingVideo(null);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingVideo) {
+      updateVideo(editingVideo.id, formData);
+    } else {
+      addVideo(formData);
+    }
+    setIsDialogOpen(false);
+    resetForm();
   };
 
   const handleEdit = (video: VideoEntry) => {
@@ -46,7 +77,7 @@ export default function VideosPage() {
       description: video.description,
       link: video.link || '',
     });
-    setShowForm(true);
+    setIsDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
@@ -56,129 +87,147 @@ export default function VideosPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <div className="mx-auto max-w-4xl px-6 py-12">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <Link href="/admin" className="text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-white">
-              ← Back to Dashboard
-            </Link>
-            <h1 className="mt-2 text-2xl font-bold">Video Content</h1>
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Total: <span className="font-semibold">{videos.length} videos</span>
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              setEditingVideo(null);
-              setFormData({
-                date: new Date().toISOString().split('T')[0],
-                title: '',
-                platform: 'YouTube',
-                description: '',
-                link: '',
-              });
-              setShowForm(!showForm);
-            }}
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
-          >
-            {showForm ? 'Cancel' : '+ Add Video'}
-          </button>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Videos</h2>
+          <p className="text-muted-foreground">
+            Manage your video content. {yearlyStats.count} videos in {yearlyStats.currentYear}
+          </p>
         </div>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) resetForm();
+        }}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" /> Add Video
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>{editingVideo ? 'Edit Video' : 'Add New Video'}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  required
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                />
+              </div>
 
-        {/* Form */}
-        {showForm && (
-          <div className="mb-8 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-            <h2 className="mb-4 text-lg font-semibold">
-              {editingVideo ? 'Edit Video' : 'Add New Video'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Title *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
-                    placeholder="Day 30 of 100 Days of DSA"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Date *
-                  </label>
-                  <input
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date</Label>
+                  <Input
+                    id="date"
                     type="date"
                     required
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
                   />
                 </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Platform
-                  </label>
-                  <select
+                <div className="space-y-2">
+                  <Label htmlFor="platform">Platform</Label>
+                  <Select
                     value={formData.platform}
-                    onChange={(e) => setFormData({ ...formData, platform: e.target.value as 'YouTube' | 'Instagram' | 'LinkedIn' | 'Other' })}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
+                    onValueChange={(val: any) => setFormData({ ...formData, platform: val })}
                   >
-                    <option>YouTube</option>
-                    <option>Instagram</option>
-                    <option>LinkedIn</option>
-                    <option>Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Video Link
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.link}
-                    onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
-                    placeholder="https://youtube.com/..."
-                  />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select platform" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="YouTube">YouTube</SelectItem>
+                      <SelectItem value="Instagram">Instagram</SelectItem>
+                      <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Description
-                </label>
-                <textarea
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
-                  className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
-                  placeholder="Brief description of the video content..."
+                  placeholder="Video description..."
                 />
               </div>
-              <button
-                type="submit"
-                className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
-              >
-                {editingVideo ? 'Update Video' : 'Add Video'}
-              </button>
-            </form>
-          </div>
-        )}
 
-        {/* List */}
-        <VideoList
-          videos={videos}
-          showActions
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+              <div className="space-y-2">
+                <Label htmlFor="link">Link</Label>
+                <Input
+                  id="link"
+                  type="url"
+                  value={formData.link}
+                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                  placeholder="https://..."
+                />
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button type="submit">{editingVideo ? 'Save Changes' : 'Add Video'}</Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Platform</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {videos.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                  No videos added yet.
+                </TableCell>
+              </TableRow>
+            ) : (
+              videos.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((video) => (
+                <TableRow key={video.id}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <Video className="h-4 w-4 text-muted-foreground" />
+                      {video.title}
+                      {video.link && (
+                        <a href={video.link} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>{video.platform}</TableCell>
+                  <TableCell className="max-w-xs truncate" title={video.description}>{video.description}</TableCell>
+                  <TableCell>{video.date}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(video)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => handleDelete(video.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

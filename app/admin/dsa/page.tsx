@@ -1,17 +1,43 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useStore } from '../../store/useStore';
-import { getStreakCount } from '../../lib/utils';
-import DSAList from '../../components/DSAList';
-import StreakGrid from '../../components/StreakGrid';
+import { getDifficultyColor, getYearlyStats } from '../../lib/utils';
 import type { DSAEntry } from '../../types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Plus, Pencil, Trash2, ExternalLink } from 'lucide-react';
 
 export default function DSAPage() {
   const { dsaEntries, addDSAEntry, updateDSAEntry, deleteDSAEntry } = useStore();
-  const [showForm, setShowForm] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<DSAEntry | null>(null);
+
+  const yearlyStats = getYearlyStats(dsaEntries.map(e => e.date));
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -23,17 +49,7 @@ export default function DSAPage() {
     link: '',
   });
 
-  const dsaDates = dsaEntries.map((e) => e.date);
-  const streak = getStreakCount(dsaDates);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingEntry) {
-      updateDSAEntry(editingEntry.id, formData);
-      setEditingEntry(null);
-    } else {
-      addDSAEntry(formData);
-    }
+  const resetForm = () => {
     setFormData({
       date: new Date().toISOString().split('T')[0],
       problemName: '',
@@ -43,7 +59,18 @@ export default function DSAPage() {
       notes: '',
       link: '',
     });
-    setShowForm(false);
+    setEditingEntry(null);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingEntry) {
+      updateDSAEntry(editingEntry.id, formData);
+    } else {
+      addDSAEntry(formData);
+    }
+    setIsDialogOpen(false);
+    resetForm();
   };
 
   const handleEdit = (entry: DSAEntry) => {
@@ -57,7 +84,7 @@ export default function DSAPage() {
       notes: entry.notes,
       link: entry.link || '',
     });
-    setShowForm(true);
+    setIsDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
@@ -67,163 +94,177 @@ export default function DSAPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <div className="mx-auto max-w-4xl px-6 py-12">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <Link href="/admin" className="text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-white">
-              ← Back to Dashboard
-            </Link>
-            <h1 className="mt-2 text-2xl font-bold">DSA Tracker</h1>
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Current streak: <span className="font-semibold text-emerald-500">{streak} days</span>
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              setEditingEntry(null);
-              setFormData({
-                date: new Date().toISOString().split('T')[0],
-                problemName: '',
-                platform: 'LeetCode',
-                difficulty: 'Medium',
-                topic: '',
-                notes: '',
-                link: '',
-              });
-              setShowForm(!showForm);
-            }}
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
-          >
-            {showForm ? 'Cancel' : '+ Add Problem'}
-          </button>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">DSA Problems</h2>
+          <p className="text-muted-foreground">
+            Manage your daily coding practice. {yearlyStats.count} solved in {yearlyStats.currentYear}
+          </p>
         </div>
-
-        {/* Streak Grid */}
-        <div className="mb-8">
-          <StreakGrid dates={dsaDates} title="Last 7 Days Activity" />
-        </div>
-
-        {/* Form */}
-        {showForm && (
-          <div className="mb-8 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-            <h2 className="mb-4 text-lg font-semibold">
-              {editingEntry ? 'Edit Problem' : 'Add New Problem'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Problem Name *
-                  </label>
-                  <input
-                    type="text"
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) resetForm();
+        }}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" /> Add Problem
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>{editingEntry ? 'Edit Problem' : 'Add New Problem'}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Problem Name</Label>
+                  <Input
+                    id="name"
                     required
                     value={formData.problemName}
                     onChange={(e) => setFormData({ ...formData, problemName: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
-                    placeholder="Two Sum"
                   />
                 </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Date *
-                  </label>
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date</Label>
+                  <Input
+                    id="date"
                     type="date"
                     required
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
                   />
                 </div>
               </div>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Platform
-                  </label>
-                  <select
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="platform">Platform</Label>
+                  <Select
                     value={formData.platform}
-                    onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
+                    onValueChange={(val) => setFormData({ ...formData, platform: val })}
                   >
-                    <option>LeetCode</option>
-                    <option>CodeForces</option>
-                    <option>HackerRank</option>
-                    <option>GeeksforGeeks</option>
-                    <option>Other</option>
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select platform" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="LeetCode">LeetCode</SelectItem>
+                      <SelectItem value="CodeForces">CodeForces</SelectItem>
+                      <SelectItem value="HackerRank">HackerRank</SelectItem>
+                      <SelectItem value="GeeksforGeeks">GeeksforGeeks</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Difficulty
-                  </label>
-                  <select
+                <div className="space-y-2">
+                  <Label htmlFor="difficulty">Difficulty</Label>
+                  <Select
                     value={formData.difficulty}
-                    onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as 'Easy' | 'Medium' | 'Hard' })}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
+                    onValueChange={(val: any) => setFormData({ ...formData, difficulty: val })}
                   >
-                    <option>Easy</option>
-                    <option>Medium</option>
-                    <option>Hard</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Topic
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.topic}
-                    onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
-                    placeholder="Arrays, DP, etc."
-                  />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Easy">Easy</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Hard">Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Notes
-                </label>
-                <textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  rows={3}
-                  className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
-                  placeholder="Key learnings, approach used, etc."
+
+              <div className="space-y-2">
+                <Label htmlFor="topic">Topic</Label>
+                <Input
+                  id="topic"
+                  value={formData.topic}
+                  onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+                  placeholder="e.g. Arrays, DP"
                 />
               </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Problem Link
-                </label>
-                <input
+
+              <div className="space-y-2">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="Key learnings..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="link">Link</Label>
+                <Input
+                  id="link"
                   type="url"
                   value={formData.link}
                   onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                  className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
-                  placeholder="https://leetcode.com/problems/..."
+                  placeholder="https://..."
                 />
               </div>
-              <button
-                type="submit"
-                className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
-              >
-                {editingEntry ? 'Update Problem' : 'Add Problem'}
-              </button>
-            </form>
-          </div>
-        )}
 
-        {/* List */}
-        <DSAList
-          entries={dsaEntries}
-          showActions
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+              <div className="flex justify-end pt-4">
+                <Button type="submit">{editingEntry ? 'Save Changes' : 'Add Problem'}</Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Problem</TableHead>
+              <TableHead>Platform</TableHead>
+              <TableHead>Difficulty</TableHead>
+              <TableHead>Topic</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {dsaEntries.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">
+                  No problems added yet.
+                </TableCell>
+              </TableRow>
+            ) : (
+              dsaEntries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((entry) => (
+                <TableRow key={entry.id}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      {entry.problemName}
+                      {entry.link && (
+                        <a href={entry.link} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>{entry.platform}</TableCell>
+                  <TableCell className={getDifficultyColor(entry.difficulty)}>{entry.difficulty}</TableCell>
+                  <TableCell>{entry.topic}</TableCell>
+                  <TableCell>{entry.date}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(entry)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => handleDelete(entry.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

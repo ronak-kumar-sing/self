@@ -1,131 +1,237 @@
 'use client';
 
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
-import { getStreakCount } from '../lib/utils';
-import StatCard from '../components/StatCard';
+import { getStreakCount, getLast7Days, getYearlyStats } from '../lib/utils';
+import { Code2, Instagram, Youtube, Linkedin, Flame } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
+} from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table";
 
 export default function AdminPage() {
-  const { dsaEntries, tasks, videos, linkedInPosts } = useStore();
+  const { dsaEntries, instagramPosts, videos, linkedInPosts, resetToMockData, clearAllData } = useStore();
+  const [mounted, setMounted] = useState(false);
 
-  const dsaStreak = getStreakCount(dsaEntries.map((e) => e.date));
-  const completedTasks = tasks.filter((t) => t.completed).length;
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todayTasks = tasks.filter((t) => t.date === todayStr);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const sections = [
-    {
-      title: 'DSA Tracker',
-      description: 'Track your daily DSA problems and maintain your streak',
-      href: '/admin/dsa',
-      count: dsaEntries.length,
-      icon: (
-        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-        </svg>
-      ),
+  if (!mounted) {
+    return <div className="space-y-4 animate-pulse">
+      <div className="h-8 w-48 bg-zinc-200 rounded dark:bg-zinc-800"></div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-32 bg-zinc-200 rounded-lg dark:bg-zinc-800"></div>
+        ))}
+      </div>
+    </div>;
+  }
+
+  // Stats
+  const dsaStreak = getStreakCount(dsaEntries.map(e => e.date));
+  const instagramStreak = getStreakCount(instagramPosts.map(p => p.date));
+  const videoStreak = getStreakCount(videos.map(v => v.date));
+  const linkedInStreak = getStreakCount(linkedInPosts.map(p => p.date));
+
+  const dsaYearlyStats = getYearlyStats(dsaEntries.map(e => e.date));
+  const instagramYearlyStats = getYearlyStats(instagramPosts.map(p => p.date));
+  const videoYearlyStats = getYearlyStats(videos.map(v => v.date));
+  const linkedInYearlyStats = getYearlyStats(linkedInPosts.map(p => p.date));
+
+  const totalViews = instagramPosts.reduce((acc, p) => acc + (p.views || 0), 0);
+  const totalLikes = instagramPosts.reduce((acc, p) => acc + (p.likes || 0), 0);
+  const totalVideoViews = videos.reduce((acc, v) => acc + (v.views || 0), 0);
+
+  const last7Days = getLast7Days();
+  const dsaDateSet = new Set(dsaEntries.map(e => e.date));
+  const instagramDateSet = new Set(instagramPosts.map(p => p.date));
+  const videoDateSet = new Set(videos.map(v => v.date));
+  const linkedInDateSet = new Set(linkedInPosts.map(p => p.date));
+
+  const handleReset = () => {
+    if (confirm("Reset all data?")) resetToMockData();
+  }
+
+  const handleClear = () => {
+    if (confirm("Delete all data?")) clearAllData();
+  }
+
+  const stats = [
+    {yearlyCount: dsaYearlyStats.count,
+      currentYear: dsaYearlyStats.currentYear,
+      color: "text-emerald-500",
     },
     {
-      title: 'Daily Tasks',
-      description: 'Manage your to-do list and track completion',
-      href: '/admin/tasks',
-      count: `${completedTasks}/${tasks.length}`,
-      icon: (
-        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-        </svg>
-      ),
+      title: "Instagram Posts",
+      value: instagramPosts.length,
+      icon: Instagram,
+      streak: instagramStreak,
+      yearlyCount: instagramYearlyStats.count,
+      currentYear: instagramYearlyStats.currentYear,
+      color: "text-pink-500",
     },
     {
-      title: 'Video Content',
-      description: 'Record videos and reels uploaded each day',
-      href: '/admin/videos',
-      count: videos.length,
-      icon: (
-        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-        </svg>
-      ),
+      title: "YouTube Videos",
+      value: videos.length,
+      icon: Youtube,
+      streak: videoStreak,
+      yearlyCount: videoYearlyStats.count,
+      currentYear: videoYearlyStats.currentYear,
+      color: "text-red-500",
     },
     {
-      title: 'LinkedIn Posts',
-      description: 'Manage your LinkedIn content journey',
-      href: '/admin/linkedin',
-      count: linkedInPosts.length,
-      icon: (
-        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
-      ),
+      title: "LinkedIn Posts",
+      value: linkedInPosts.length,
+      icon: Linkedin,
+      streak: linkedInStreak,
+      yearlyCount: linkedInYearlyStats.count,
+      currentYear: linkedInYearlyStats.currentYear,
+      color: "text-blue-500",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <div className="mx-auto max-w-6xl px-6 py-12">
-        {/* Header */}
-        <div className="mb-12">
-          <div className="flex items-center gap-2 text-sm text-zinc-500">
-            <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-            Private Admin Area
-          </div>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-            Manage your growth journey
+    <div className="space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+          <p className="text-muted-foreground">
+            Overview of your content creation journey.
           </p>
         </div>
-
-        {/* Quick Stats */}
-        <div className="mb-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="Current Streak"
-            value={`${dsaStreak} days`}
-            subtitle="Keep it going!"
-          />
-          <StatCard
-            title="Today's Tasks"
-            value={`${todayTasks.filter(t => t.completed).length}/${todayTasks.length}`}
-            subtitle="Tasks completed today"
-          />
-          <StatCard
-            title="Total Problems"
-            value={dsaEntries.length}
-            subtitle="DSA problems solved"
-          />
-          <StatCard
-            title="Content Created"
-            value={videos.length + linkedInPosts.length}
-            subtitle="Videos + Posts"
-          />
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleReset}>Reset Sample</Button>
+          <Button variant="destructive" onClick={handleClear}>Clear All</Button>
         </div>
+      </div>
 
-        {/* Section Cards */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          {sections.map((section) => (
-            <Link
-              key={section.href}
-              href={section.href}
-              className="group rounded-xl border border-zinc-200 bg-white p-6 transition-all hover:border-zinc-300 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
-            >
-              <div className="flex items-start justify-between">
-                <div className="rounded-lg bg-zinc-100 p-3 text-zinc-600 transition-colors group-hover:bg-zinc-900 group-hover:text-white dark:bg-zinc-800 dark:text-zinc-400 dark:group-hover:bg-white dark:group-hover:text-zinc-900">
-                  {section.icon}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => {
+          const IconComponent = stat.icon;
+          return (
+            <Card key={stat.title}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {stat.title}
+                </CardTitle>
+                {IconComponent && <IconComponent className={`h-4 w-4 text-muted-foreground ${stat.color}`} />}
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                  <Flame className="h-3 w-3 text-orange-500" />
+                  {stat.streak} day streak
+                </p>
+                <p className="text-xs font-medium mt-2" style={{ color: (stat.color || '').replace('text-', '') }}>
+                  {stat.yearlyCount} in {stat.currentYear}
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4">
+          <CardHeader>
+            <CardTitle>Weekly Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">Platform</TableHead>
+                  {last7Days.map(day => (
+                    <TableHead key={day} className="text-center">{new Date(day).toLocaleDateString('en-US', { weekday: 'short' })}</TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="font-medium">DSA</TableCell>
+                  {last7Days.map(day => (
+                    <TableCell key={day} className="text-center">
+                      {dsaDateSet.has(day) ? <div className="mx-auto h-2 w-2 rounded-full bg-emerald-500" /> : <span className="text-muted-foreground">-</span>}
+                    </TableCell>
+                  ))}
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Instagram</TableCell>
+                  {last7Days.map(day => (
+                    <TableCell key={day} className="text-center">
+                      {instagramDateSet.has(day) ? <div className="mx-auto h-2 w-2 rounded-full bg-pink-500" /> : <span className="text-muted-foreground">-</span>}
+                    </TableCell>
+                  ))}
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">YouTube</TableCell>
+                  {last7Days.map(day => (
+                    <TableCell key={day} className="text-center">
+                      {videoDateSet.has(day) ? <div className="mx-auto h-2 w-2 rounded-full bg-red-500" /> : <span className="text-muted-foreground">-</span>}
+                    </TableCell>
+                  ))}
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">LinkedIn</TableCell>
+                  {last7Days.map(day => (
+                    <TableCell key={day} className="text-center">
+                      {linkedInDateSet.has(day) ? <div className="mx-auto h-2 w-2 rounded-full bg-blue-500" /> : <span className="text-muted-foreground">-</span>}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <Card className="col-span-3">
+          <CardHeader>
+            <CardTitle>Engagement Overview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <div className="ml-4 space-y-1">
+                  <p className="text-sm font-medium leading-none">Instagram Views</p>
+                  <p className="text-sm text-muted-foreground">
+                    Total views across all reels/posts
+                  </p>
                 </div>
-                <span className="text-2xl font-semibold text-zinc-300 dark:text-zinc-700">
-                  {section.count}
-                </span>
+                <div className="ml-auto font-bold">{totalViews.toLocaleString()}</div>
               </div>
-              <h3 className="mt-4 text-lg font-semibold">{section.title}</h3>
-              <p className="mt-1 text-sm text-zinc-500">{section.description}</p>
-              <div className="mt-4 flex items-center gap-1 text-sm font-medium text-zinc-600 group-hover:text-zinc-900 dark:text-zinc-400 dark:group-hover:text-white">
-                Manage
-                <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+              <div className="flex items-center">
+                <div className="ml-4 space-y-1">
+                  <p className="text-sm font-medium leading-none">Instagram Likes</p>
+                  <p className="text-sm text-muted-foreground">
+                    Total likes
+                  </p>
+                </div>
+                <div className="ml-auto font-bold">{totalLikes.toLocaleString()}</div>
               </div>
-            </Link>
-          ))}
-        </div>
+              <div className="flex items-center">
+                <div className="ml-4 space-y-1">
+                  <p className="text-sm font-medium leading-none">YouTube Views</p>
+                  <p className="text-sm text-muted-foreground">
+                    Total video views
+                  </p>
+                </div>
+                <div className="ml-auto font-bold">{totalVideoViews.toLocaleString()}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
