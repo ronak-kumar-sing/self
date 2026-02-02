@@ -56,9 +56,11 @@ export interface Project {
   status: 'In Progress' | 'Completed' | 'Maintained' | 'Archived';
   technologies: string[];
   features?: string[];
-  githubUrl?: string;
+  githubUrl?: string; // New field
   liveUrl?: string;
   imageUrl?: string;
+  videoUrl?: string; // Ensure this is here if not already, though I saw it in seed data, it was missing in the interface I read earlier? No wait, let me check the read output again.
+
   startDate: string;
   endDate?: string;
   featured?: boolean;

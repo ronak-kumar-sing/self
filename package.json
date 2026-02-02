@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint",
+    "scrape:instagram": "ts-node scripts/instagram-scraper.ts",
+    "scrape:linkedin": "ts-node scripts/linkedin-scraper.ts",
+    "sync:vercel": "ts-node scripts/vercel-sync.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -15,13 +18,17 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@react-three/fiber": "^9.5.0",
     "@types/three": "^0.182.0",
+    "axios": "^1.13.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.3",
     "framer-motion": "^12.29.2",
+    "instagram-private-api": "^1.45.3",
     "lucide-react": "^0.563.0",
     "mongoose": "^9.1.5",
     "next": "16.1.6",
+    "next-auth": "^4.24.13",
+    "puppeteer": "^24.36.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "tailwind-merge": "^3.4.0",
@@ -38,6 +45,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

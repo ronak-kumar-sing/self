@@ -3,23 +3,53 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Code2, Instagram, Youtube, Linkedin, Menu, X } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { LayoutDashboard, Code2, Instagram, Youtube, Linkedin, Menu, X, LogOut } from 'lucide-react';
 import { cn } from '@/app/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useSession, signOut } from 'next-auth/react';
+import AuthProvider from '../components/AuthProvider';
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { fetchData } = useStore();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    if (status === 'loading') return;
+
+    if (status === 'unauthenticated' && pathname !== '/admin/login') {
+      router.push('/admin/login');
+    }
+
+    if (status === 'authenticated' && pathname === '/admin/login') {
+      router.push('/admin');
+    }
+  }, [status, pathname, router]);
+
+  if (status === 'loading') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent dark:border-white"></div>
+      </div>
+    );
+  }
+
+  // If on login page, just show children
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+
+  // If not authenticated (and redirecting), show nothing or processing state
+  if (status === 'unauthenticated') {
+    return null;
+  }
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -83,6 +113,24 @@ export default function AdminLayout({
               );
             })}
           </nav>
+
+          {/* User Profile / Logout */}
+          <div className="border-t border-zinc-200 p-4 dark:border-zinc-800">
+            <div className="flex items-center gap-3 rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800/50">
+              <div className="flex-1 overflow-hidden">
+                <p className="truncate text-sm font-medium text-zinc-900 dark:text-white">
+                  {session?.user?.email}
+                </p>
+              </div>
+              <button
+                onClick={() => signOut()}
+                className="rounded-md p-1 text-zinc-500 hover:bg-white hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+                title="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </aside>
 
@@ -108,3 +156,12 @@ export default function AdminLayout({
     </div>
   );
 }
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AuthProvider>
+      <AdminLayoutContent>{children}</AdminLayoutContent>
+    </AuthProvider>
+  );
+}
+

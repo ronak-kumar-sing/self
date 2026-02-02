@@ -43,6 +43,10 @@ const ProjectSchema = new mongoose.Schema({
         type: String,
         trim: true,
     },
+    videoUrl: {
+        type: String,
+        trim: true,
+    },
     startDate: {
         type: String,
         required: [true, 'Please provide a start date'],
@@ -57,6 +61,11 @@ const ProjectSchema = new mongoose.Schema({
     order: {
         type: Number,
         default: 0,
+    },
+    vercelId: {
+        type: String,
+        unique: true,
+        sparse: true,
     },
 }, {
     timestamps: true,

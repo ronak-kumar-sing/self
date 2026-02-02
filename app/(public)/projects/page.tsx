@@ -1,7 +1,13 @@
-'use client';
+
 
 import ProjectList from '../../components/ProjectList';
 import { Sparkles } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Projects | SELF',
+  description: 'A curated collection of my full-stack, mobile, and open-source projects.',
+};
 
 export default function ProjectsPage() {
   return (
@@ -10,7 +16,7 @@ export default function ProjectsPage() {
       <section className="relative overflow-hidden border-b border-zinc-200 dark:border-zinc-800">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
         <div className="absolute left-1/2 top-0 -z-10 h-[400px] w-[600px] -translate-x-1/2 rounded-full bg-gradient-to-br from-violet-500/20 via-purple-500/10 to-transparent blur-3xl" />
-        
+
         <div className="mx-auto max-w-6xl px-6 py-20">
           <div className="flex flex-col items-center text-center">
             {/* Badge */}
@@ -27,10 +33,10 @@ export default function ProjectsPage() {
                 Built
               </span>
             </h1>
-            
+
             <p className="mt-6 max-w-2xl text-lg text-zinc-600 dark:text-zinc-400">
-              A curated collection of projects showcasing my skills in web development, 
-              system design, and problem-solving. Each project represents a unique challenge 
+              A curated collection of projects showcasing my skills in web development,
+              system design, and problem-solving. Each project represents a unique challenge
               and learning experience.
             </p>
 
@@ -72,7 +78,7 @@ export default function ProjectsPage() {
             </p>
             <div className="mt-8 flex gap-4">
               <a
-                href="https://github.com/ronakkumar"
+                href="https://github.com/ronak-kumar-sing"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"

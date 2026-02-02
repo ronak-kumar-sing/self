@@ -17,8 +17,9 @@ export async function GET(req: Request) {
                 console.warn('YouTube API Key or Channel ID not found');
             } else {
                 try {
+                    console.log('🔄 Syncing YouTube videos from channel:', channelId);
                     const response = await fetch(
-                        `https://www.googleapis.com/youtube/v3/search?key=${apiKey}&channelId=${channelId}&part=snippet,id&order=date&maxResults=10&type=video`
+                        `https://www.googleapis.com/youtube/v3/search?key=${apiKey}&channelId=${channelId}&part=snippet,id&order=date&maxResults=50&type=video`
                     );
 
                     if (!response.ok) {
@@ -26,37 +27,44 @@ export async function GET(req: Request) {
                     }
 
                     const data = await response.json();
+                    console.log(`✅ Found ${data.items?.length || 0} videos`);
 
                     if (data.items && Array.isArray(data.items)) {
-                        const operations = data.items.map((item: any) => ({
-                            updateOne: {
-                                filter: { videoId: item.id.videoId },
-                                update: {
-                                    $set: {
-                                        videoId: item.id.videoId,
-                                        title: item.snippet.title,
-                                        thumbnail: item.snippet.thumbnails.high.url,
-                                        publishedAt: item.snippet.publishedAt,
-                                        date: new Date(item.snippet.publishedAt),
-                                        description: item.snippet.description,
-                                        channelTitle: item.snippet.channelTitle
-                                    }
-                                },
-                                upsert: true
-                            }
-                        }));
+                        const operations = data.items.map((item: any) => {
+                            const videoId = item.id.videoId;
+                            const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+                            
+                            return {
+                                updateOne: {
+                                    filter: { apiId: videoId },
+                                    update: {
+                                        $set: {
+                                            apiId: videoId,
+                                            title: item.snippet.title,
+                                            description: item.snippet.description,
+                                            thumbnail: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default?.url,
+                                            link: youtubeUrl,
+                                            date: item.snippet.publishedAt,
+                                            platform: 'YouTube',
+                                        }
+                                    },
+                                    upsert: true
+                                }
+                            };
+                        });
 
                         if (operations.length > 0) {
-                            await VideoEntry.bulkWrite(operations);
+                            const result = await VideoEntry.bulkWrite(operations);
+                            console.log(`📊 Upserted ${result.upsertedCount} new videos, modified ${result.modifiedCount}`);
                         }
                     }
                 } catch (apiError) {
-                    console.error('Error syncing YouTube data:', apiError);
+                    console.error('❌ Error syncing YouTube data:', apiError);
                 }
             }
         }
 
-        const videos = await VideoEntry.find({}).sort({ date: -1 });
+        const videos = await VideoEntry.find({}).sort({ date: -1 }).lean();
         return NextResponse.json(videos);
     } catch (error) {
         return NextResponse.json({ success: false, error: 'Failed to fetch videos' }, { status: 400 });

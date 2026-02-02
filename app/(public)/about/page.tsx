@@ -1,4 +1,10 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'About | SELF',
+  description: 'Software Engineer passionate about building software and consistent growth.',
+};
 
 export default function AboutPage() {
   return (
@@ -16,8 +22,8 @@ export default function AboutPage() {
                 <p className="mt-2 text-xl text-zinc-600 dark:text-zinc-400">Software Engineer</p>
                 <p className="mt-1 text-zinc-500">Lovely Professional University</p>
                 <p className="mt-4 max-w-2xl text-zinc-600 dark:text-zinc-400">
-                  Passionate about building software and growing every day. I believe in 
-                  learning in public, consistency over intensity, and the compound effect 
+                  Passionate about building software and growing every day. I believe in
+                  learning in public, consistency over intensity, and the compound effect
                   of daily progress.
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3 md:justify-start">
@@ -43,7 +49,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-lg font-semibold">Daily DSA Practice</h3>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                Solving algorithmic problems daily to strengthen problem-solving skills 
+                Solving algorithmic problems daily to strengthen problem-solving skills
                 and prepare for technical interviews.
               </p>
             </div>
@@ -55,7 +61,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-lg font-semibold">Continuous Learning</h3>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                Constantly exploring new technologies, frameworks, and best practices 
+                Constantly exploring new technologies, frameworks, and best practices
                 in software development.
               </p>
             </div>
@@ -67,7 +73,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-lg font-semibold">Content Creation</h3>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                Creating educational content about my journey, sharing learnings, 
+                Creating educational content about my journey, sharing learnings,
                 and documenting my growth.
               </p>
             </div>
@@ -79,7 +85,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-lg font-semibold">Building in Public</h3>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                Sharing my professional journey on LinkedIn, connecting with 
+                Sharing my professional journey on LinkedIn, connecting with
                 like-minded professionals, and building my network.
               </p>
             </div>
@@ -122,7 +128,7 @@ export default function AboutPage() {
           <div className="rounded-2xl bg-gradient-to-r from-zinc-900 to-zinc-800 p-8 text-white dark:from-zinc-800 dark:to-zinc-700">
             <h2 className="text-2xl font-bold">Let&apos;s Connect</h2>
             <p className="mt-2 text-zinc-300">
-              I&apos;m always open to discussing opportunities, collaborations, or just 
+              I&apos;m always open to discussing opportunities, collaborations, or just
               having a conversation about tech and career growth.
             </p>
             <div className="mt-6 flex flex-wrap gap-4">

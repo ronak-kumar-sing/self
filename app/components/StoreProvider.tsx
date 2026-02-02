@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useStore } from '../store/useStore';
 
 interface StoreProviderProps {
   children: React.ReactNode;
@@ -8,9 +9,11 @@ interface StoreProviderProps {
 
 export default function StoreProvider({ children }: StoreProviderProps) {
   const [isHydrated, setIsHydrated] = useState(false);
+  const fetchData = useStore((state) => state.fetchData);
 
   useEffect(() => {
     setIsHydrated(true);
+    fetchData();
   }, []);
 
   if (!isHydrated) {
