@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SELF | Ronak Kumar",
   description: "Personal growth dashboard - Daily DSA, Learning, and Professional Journey",
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
