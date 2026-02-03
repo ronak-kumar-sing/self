@@ -34,6 +34,7 @@ export default function VideosPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingVideo, setEditingVideo] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -44,6 +45,18 @@ export default function VideosPage() {
   });
 
   // Fetch videos from API
+  const fetchVideos = async () => {
+    try {
+      const response = await fetch('/api/videos');
+      if (response.ok) {
+        const data = await response.json();
+        setVideos(data);
+      }
+    } catch (error) {
+      console.error('Error fetching videos:', error);
+    }
+  };
+
   useEffect(() => {
     const syncAndFetch = async () => {
       setIsLoading(true);
@@ -51,11 +64,7 @@ export default function VideosPage() {
         // Auto-sync YouTube videos
         await fetch('/api/videos?sync=true');
         // Then fetch the videos
-        const response = await fetch('/api/videos');
-        if (response.ok) {
-          const data = await response.json();
-          setVideos(data);
-        }
+        await fetchVideos();
       } catch (error) {
         console.error('Error syncing/fetching videos:', error);
       } finally {

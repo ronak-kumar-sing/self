@@ -244,10 +244,10 @@ export default function Home() {
 
                 <div className="mb-4 sm:mb-8 scale-75 sm:scale-100 transform-gpu">
                   <FuzzyText
-                    baseText="RONAK"
-                    hoverText="KUMAR"
                     fontSize={120} // Scaled down via CSS transform on mobile
-                  />
+                  >
+                    RONAK
+                  </FuzzyText>
                 </div>
 
                 <h2 className="max-w-2xl text-center text-lg sm:text-2xl font-light text-zinc-600 dark:text-zinc-400 px-4">
