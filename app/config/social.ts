@@ -15,7 +15,7 @@ export const socialLinks = {
     icon: 'instagram',
   },
   youtube: {
-    url: 'https://www.youtube.com/channel/UCq-W2lUMG3WY67aGHTT2b3Q',
+    url: 'https://www.youtube.com/channel/YOUR_CHANNEL_ID',
     label: 'YouTube',
     icon: 'youtube',
   },

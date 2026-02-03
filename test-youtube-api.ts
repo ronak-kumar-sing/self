@@ -51,7 +51,7 @@ async function testYouTubeAPI() {
 
       if (playlistRes.ok && playlistData.items.length > 0) {
         console.log(`\n✅ Latest ${playlistData.items.length} videos:`);
-        playlistData.items.forEach((item: any, i: number) => {
+        playlistData.items.forEach((item, i) => {
           console.log(
             `   ${i + 1}. ${item.snippet.title} (${item.snippet.publishedAt.split('T')[0]})`
           );

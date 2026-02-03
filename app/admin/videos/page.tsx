@@ -34,7 +34,6 @@ export default function VideosPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingVideo, setEditingVideo] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSyncing, setIsSyncing] = useState(false);
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -81,7 +80,7 @@ export default function VideosPage() {
     e.preventDefault();
     try {
       const method = editingVideo ? 'PUT' : 'POST';
-      const body = editingVideo
+      const body = editingVideo 
         ? { id: editingVideo._id, ...formData }
         : formData;
 
@@ -92,7 +91,7 @@ export default function VideosPage() {
       });
 
       if (response.ok) {
-        await syncAndFetch();
+        await fetchVideos();
         setIsDialogOpen(false);
         resetForm();
       }
