@@ -19,7 +19,8 @@ const handler = NextAuth({
     },
     pages: {
         error: '/admin/login', // Redirect to login page on error
-    }
+    },
+    secret: process.env.NEXTAUTH_SECRET,
 })
 
 export { handler as GET, handler as POST }
