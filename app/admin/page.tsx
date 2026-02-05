@@ -69,7 +69,8 @@ export default function AdminPage() {
   }
 
   const stats = [
-    {yearlyCount: dsaYearlyStats.count,
+    {
+      yearlyCount: dsaYearlyStats.count,
       currentYear: dsaYearlyStats.currentYear,
       color: "text-emerald-500",
     },
@@ -149,7 +150,7 @@ export default function AdminPage() {
             <CardTitle>Weekly Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
+            <Table className="min-w-[600px]">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[100px]">Platform</TableHead>

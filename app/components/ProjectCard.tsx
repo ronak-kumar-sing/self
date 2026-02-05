@@ -37,8 +37,8 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
   return (
     <>
       <div className={`group relative overflow-hidden rounded-2xl border bg-white transition-all duration-300 hover:shadow-xl dark:bg-zinc-900 ${featured
-          ? 'border-violet-200 dark:border-violet-800 shadow-lg shadow-violet-500/10'
-          : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
+        ? 'border-violet-200 dark:border-violet-800 shadow-lg shadow-violet-500/10'
+        : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
         }`}>
         {/* Featured Badge */}
         {project.featured && (
@@ -131,7 +131,7 @@ export default function ProjectCard({ project, featured = false }: ProjectCardPr
           </div>
 
           {/* Links */}
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             {project.videoUrl && (
               <button
                 onClick={() => setShowVideo(true)}
